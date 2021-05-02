@@ -20,6 +20,7 @@ Route::middleware('auth')->get('/user', function (Request $request) {
 });
 
 
+
 //create user route
 Route::get("/api/auth/register", function (Request $request) {
     App\User::create([
