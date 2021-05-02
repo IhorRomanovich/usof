@@ -19,15 +19,15 @@ Route::middleware('auth')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
-
 //create user route
 Route::get("/api/auth/register", function (Request $request) {
     App\User::create([
         'login' => 'login',
         'password' => Hash::make('password'),
         'password_confirmation' => Hash::make('password'),
-        'email' => 'lololol@gmail.com'
+        'email' => 'lololol@gmail.com',
+        'fullname' => 'test user',
+        'role' => 'user'
     ]);
 });
 
