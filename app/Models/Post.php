@@ -17,17 +17,17 @@ class Post extends Model
     protected $fillable = [
         'author_id',
         'title',
-        'publish_date',
+        /*'publish_date',*/
         'status',
         'content',
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'publish_date' => 'datetime',
-    ];
+    // /**
+    //  * The attributes that should be cast to native types.
+    //  *
+    //  * @var array
+    //  */
+    // protected $casts = [
+    //     'publish_date' => 'datetime',
+    // ];
 }

@@ -19,15 +19,15 @@ class Like extends Model
         'c_id',
         'author_id',
         'islike',
-        'like_date',
+        // 'like_date',
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'like_date' => 'datetime',
-    ];
+    // /**
+    //  * The attributes that should be cast to native types.
+    //  *
+    //  * @var array
+    //  */
+    // protected $casts = [
+    //     'like_date' => 'datetime',
+    // ];
 }

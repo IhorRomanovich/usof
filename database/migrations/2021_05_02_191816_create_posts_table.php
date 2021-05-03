@@ -17,9 +17,9 @@ class CreatePostsTable extends Migration
             $table->id();
             $table->bigInteger('author_id');
             $table->string('title');
-            $table->timestamp('publish_date');
             $table->string('status');
             $table->string('content');
+            $table->timestamps();
             $table->foreign('author_id')->references('id')->on('users');
         });
     }
