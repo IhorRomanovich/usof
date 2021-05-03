@@ -15,24 +15,38 @@ use Illuminate\Support\Facades\Hash;
 |
 */
 
-Route::middleware('auth')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
 
-//create user route
-Route::get("/user-create", function (Request $request) {//"/api/auth/register", function (Request $request) {
+//create a user
+Route::post("/auth/register/", function () {//"/api/auth/register", function (Request $request) {
     App\Models\User::create([
-        'login' => 'login',
-        'password' => Hash::make('password'),
-        'password_confirmation' => Hash::make('password'),
-        'email' => 'lololol@gmail.com',
-        'fullname' => 'test user',
+        'login' => 'login1',
+        'password' => Hash::make('password1'),
+        'password_confirmation' => Hash::make('password1'),
+        'email' => 'lololol1@gmail.com',
+        'fullname' => 'test1 user1',
         'profile_picture' => 'none',
         'role' => 'user',
     ]);
 });
 
 //login a user
+Route::post("/auth/login/", function () {
+
+    $credentials = request()->only(['login', 'password']);
+
+    $token = auth()->attempt($credentials);
+
+    return $token;
+});
+
+//get authenticated user
+Route::middleware('auth:api')->post('/me', function() {
+    return auth()->user();
+});
+
 
 //logout a user
 
