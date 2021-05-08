@@ -19,36 +19,46 @@ use Illuminate\Support\Facades\Hash;
 //     return $request->user();
 // });
 
-//create a user
-Route::post("/auth/register/", function () {//"/api/auth/register", function (Request $request) {
-    App\Models\User::create([
-        'login' => 'login1',
-        'password' => Hash::make('password1'),
-        'password_confirmation' => Hash::make('password1'),
-        'email' => 'lololol1@gmail.com',
-        'fullname' => 'test1 user1',
-        'profile_picture' => 'none',
-        'role' => 'user',
-    ]);
+// // // // // // // // // //create a user
+// // // // // // // // // Route::post("/auth/register/", function () {//"/api/auth/register", function (Request $request) {
+// // // // // // // // //     App\Models\User::create([
+// // // // // // // // //         'login' => 'login1',
+// // // // // // // // //         'password' => Hash::make('password1'),
+// // // // // // // // //         'password_confirmation' => Hash::make('password1'),
+// // // // // // // // //         'email' => 'lololol1@gmail.com',
+// // // // // // // // //         'fullname' => 'test1 user1',
+// // // // // // // // //         'profile_picture' => 'none',
+// // // // // // // // //         'role' => 'user',
+// // // // // // // // //     ]);
+// // // // // // // // // });
+
+// // // // // // // // // //login a user
+// // // // // // // // // Route::post("/auth/login/", function () {
+
+// // // // // // // // //     $credentials = request()->only(['login', 'password']);
+
+// // // // // // // // //     $token = auth()->attempt($credentials);
+
+// // // // // // // // //     return $token;
+// // // // // // // // // });
+
+// // // // // // // // // //get authenticated user
+// // // // // // // // // Route::middleware('auth:api')->post('/me', function() {
+// // // // // // // // //     return auth()->user();
+// // // // // // // // // });
+
+
+// // // // // // // // // //logout a user
+
+Route::group([
+    'middleware' => 'api',
+    'namespace' => 'App\Http\Controllers',
+    'prefix' => 'auth',
+], function($router) {
+    Route::post('login', 'AuthController@login');
+    Route::post('register', 'AuthController@register');
+    Route::post('logout', 'AuthController@logout');
+    Route::post('refresh', 'AuthController@refresh');
 });
-
-//login a user
-Route::post("/auth/login/", function () {
-
-    $credentials = request()->only(['login', 'password']);
-
-    $token = auth()->attempt($credentials);
-
-    return $token;
-});
-
-//get authenticated user
-Route::middleware('auth:api')->post('/me', function() {
-    return auth()->user();
-});
-
-
-//logout a user
-
 
 
