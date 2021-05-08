@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 |
 */
 
+/*
 // Route::middleware('auth')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
@@ -50,15 +51,21 @@ use Illuminate\Support\Facades\Hash;
 
 // // // // // // // // // //logout a user
 
+//Auth::routes(['verify' => true]);
+*/
+
 Route::group([
     'middleware' => 'api',
     'namespace' => 'App\Http\Controllers',
     'prefix' => 'auth',
 ], function($router) {
-    Route::post('login', 'AuthController@login');
+    Route::post('login', 'AuthController@login');//->middleware('verified');
     Route::post('register', 'AuthController@register');
     Route::post('logout', 'AuthController@logout');
     Route::post('refresh', 'AuthController@refresh');
+    Route::get('email/verify/{id}', 'VerificationController@verify')->name('verification.verify');
+    Route::get('email/resend', 'VerificationController@resend')->name('verification.resend');
+    //Route::post('refresh', 'AuthController@refresh');
 });
 
 
