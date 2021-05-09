@@ -65,6 +65,8 @@ Route::group([
     Route::post('refresh', 'AuthController@refresh');
     Route::get('email/verify/{id}', 'VerificationController@verify')->name('verification.verify');
     Route::get('email/resend', 'VerificationController@resend')->name('verification.resend');
+    Route::post('password-reset', 'Auth\ForgotPasswordController@sendResetLinkEmail');//->name('password.reset');
+    Route::post('password-reset/{confirmation_token}', 'Auth\ResetPasswordController@apiReset');//->name('newpassword.set');
     //Route::post('refresh', 'AuthController@refresh');
 });
 

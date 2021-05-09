@@ -23,7 +23,7 @@ class VerificationController extends Controller
         return redirect()->to('/');
     }
 
-    public function resend($user_id, Request $request) {
+    public function resend() {
         if (auth()->user()->hasVerifiedEmail()) {
             return response()->json(['error' => 'Email already verified!'], 401);
         }
@@ -34,6 +34,8 @@ class VerificationController extends Controller
 
     }
 
-    
+    protected function guard() {
+        return Auth::guard();
+    }
 
 }

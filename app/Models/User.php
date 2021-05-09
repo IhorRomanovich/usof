@@ -4,13 +4,15 @@ namespace App\Models;
 
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Auth\Passwords\CanResetPassword as CRP;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements JWTSubject, CanResetPassword
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, CRP;
 
     /**
      * The attributes that are mass assignable.
@@ -53,5 +55,16 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    // /**
+    //  * Send the password reset notification.
+    //  *
+    //  * @param  string  $token
+    //  * @return void
+    //  */
+    // public function sendPasswordResetNotification($token)
+    // {
+    //     $this->notify(new ResetPasswordNotification($token));
+    // }
 
 }
