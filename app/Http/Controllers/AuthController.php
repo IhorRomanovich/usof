@@ -18,7 +18,7 @@ class AuthController extends Controller
     public function login(Request $request) {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'login' => 'required|string|between:6,30',
+            'name' => 'required|string|between:6,30',
             'password' => 'required|string|between:8,30',
         ]);
 
@@ -48,7 +48,7 @@ class AuthController extends Controller
 
     public function register(Request $request) {
         $validator = Validator::make($request->all(), [
-            'login' => 'required|string|between:6,30|unique:users',
+            'name' => 'required|string|between:6,30|unique:users',
             'password' => 'required|string|between:8,30',
             'password_confirmation' => 'required|string|between:8,30|same:password',
             'email' => 'required|email|unique:users',
@@ -63,8 +63,9 @@ class AuthController extends Controller
 
         $user = User::create(array_merge(
             $validator->validated(),
-            ['password' => Hash::make($request->password), 'role' => 'user']
-        ))->sendEmailVerificationNotification();
+            ['password' => Hash::make($request->password)]
+        ));
+        $user->sendEmailVerificationNotification();
 
         return response()->json(['message' => 'User created successfully', 'user' => $user]);
     }
@@ -87,6 +88,6 @@ class AuthController extends Controller
     }
 
     protected function guard() {
-        return Auth::guard();
+        return Auth::guard('api');
     }
 }
