@@ -70,4 +70,18 @@ Route::group([
     //Route::post('refresh', 'AuthController@refresh');
 });
 
-
+Route::group([
+    'middleware' => 'api',
+    'namespace' => 'App\Http\Controllers',
+    'prefix' => 'users',
+], function($router) {
+    Route::get('', 'UserController@all');
+    Route::get('{user_id}', 'UserController@userByID');
+    Route::post('logout', 'UserController@logout');
+    Route::post('refresh', 'UserController@refresh');
+    Route::get('email/verify/{id}', 'VerificationController@verify')->name('verification.verify');
+    Route::get('email/resend', 'VerificationController@resend')->name('verification.resend');
+    Route::post('password-reset', 'Auth\ForgotPasswordController@sendResetLinkEmail');
+    Route::post('password-reset/{confirmation_token}', 'Auth\ResetPasswordController@apiReset');
+    //Route::post('refresh', 'AuthController@refresh');
+});
