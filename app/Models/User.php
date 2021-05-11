@@ -25,7 +25,7 @@ class User extends \TCG\Voyager\Models\User implements JWTSubject, CanResetPassw
         'password',
         'fullname',
         'profile_picture',
-        'role'
+        'can_login',
     ];
 
     /**
@@ -34,6 +34,7 @@ class User extends \TCG\Voyager\Models\User implements JWTSubject, CanResetPassw
      * @var array
      */
     protected $hidden = [
+        'role_id',
         'password',
         'remember_token',
     ];

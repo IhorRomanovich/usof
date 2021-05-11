@@ -19,7 +19,7 @@ class CreateLikesTable extends Migration
             $table->unsignedBigInteger('c_id');
             $table->unsignedBigInteger('author_id');
             $table->boolean('islike');
-            $table->timestamp('like_date');
+            $table->timestamps();
             // $table->foreign('author_id')->references('id')->on('users');
         });
     }

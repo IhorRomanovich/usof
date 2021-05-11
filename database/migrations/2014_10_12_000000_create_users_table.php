@@ -21,6 +21,7 @@ class CreateUsersTable extends Migration
             $table->string('password');
             $table->string('fullname')->nullable();
             $table->string('profile_picture')->nullable();
+            $table->boolean('can_login')->nullable()->default(true);//Мейби тут ошибка
            // $table->bigInteger('role')->default(1);
             $table->rememberToken();
             $table->timestamps();

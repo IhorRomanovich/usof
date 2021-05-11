@@ -42,3 +42,27 @@ Route::group([
     Route::patch('/{user_id}', 'UserController@UpdateUserData')->name('user.update');
     Route::delete('/{user_id}', 'UserController@DeleteUserData')->name('user.delete');
 });
+
+Route::group([
+    'middleware' => 'api',
+    'namespace' => 'App\Http\Controllers',
+    'prefix' => 'posts',
+], function($router) {
+    Route::get('/', 'PostController@all')->name('post.all');
+    Route::get('/{post_id}', 'PostController@postByID')->name('post.byID');
+    Route::get('/{post_id}/comments', 'PostController@commentsByPostID')->name('comments.byPostID');
+
+    Route::post('/{post_id}/comments', 'PostController@AddComment')->name('comment.add');
+
+    Route::get('/{post_id}/categories', 'PostController@categoryByPostID')->name('categories.byPostID');
+    Route::get('/{post_id}/like', 'PostController@likesByPostID')->name('likes.byPostID');
+
+    Route::post('/', 'PostController@AddPost')->name('post.add');
+    Route::post('/{post_id}/like', 'PostController@AddLikeToPost')->name('like.add');
+
+    Route::patch('/{post_id}', 'PostController@UpdatePostData')->name('post.update');
+
+    Route::delete('/{post_id}', 'PostController@DeletePostData')->name('post.delete');
+    Route::delete('/{post_id}/like', 'PostController@DeletePostLike')->name('like.delete');
+
+});
