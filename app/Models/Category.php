@@ -15,7 +15,20 @@ class Category extends Model
      * @var array
      */
     protected $fillable = [
-        'name',
+        'title',
         'description',
+        'slug',
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'order',
+        'parent_id',
     ];
 }

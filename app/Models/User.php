@@ -10,7 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Auth\Passwords\CanResetPassword as CRP;
 
-class User extends Authenticatable implements JWTSubject, CanResetPassword
+class User extends \TCG\Voyager\Models\User implements JWTSubject, CanResetPassword
 {
     use HasFactory, Notifiable, CRP;
 
@@ -20,12 +20,12 @@ class User extends Authenticatable implements JWTSubject, CanResetPassword
      * @var array
      */
     protected $fillable = [
-        'login',
+        'name',
         'email',
         'password',
         'fullname',
         'profile_picture',
-        'role'
+        'can_login',
     ];
 
     /**
@@ -34,6 +34,7 @@ class User extends Authenticatable implements JWTSubject, CanResetPassword
      * @var array
      */
     protected $hidden = [
+        'role_id',
         'password',
         'remember_token',
     ];
@@ -45,6 +46,7 @@ class User extends Authenticatable implements JWTSubject, CanResetPassword
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        //'role' => 'biginteger'
     ];
 
     public function getJWTIdentifier() {
