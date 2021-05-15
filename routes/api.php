@@ -57,8 +57,12 @@ Route::group([
 
     Route::post('/', 'PostController@AddPost')->name('post.add');
     Route::post('/{post_id}/like', 'PostController@AddLikeToPost')->name('like.add');
+    //New func
+    Route::post('/{post_id}/dislike', 'PostController@disikePost')->name('dislike.add');
 
     Route::patch('/{post_id}', 'PostController@UpdatePostData')->name('post.update');
+    //New func
+    Route::patch('/{post_id}/inactive', 'PostController@makePostInactive')->name('post.inactive');
 
     Route::delete('/{post_id}', 'PostController@DeletePostData')->name('post.delete');
     Route::delete('/{post_id}/like', 'PostController@DeletePostLike')->name('post.like.delete');
@@ -91,6 +95,8 @@ Route::group([
     Route::get('/{comment_id}/like', 'CommentsController@getLikesByCommentID')->name('comment.all');
 
     Route::post('/{comment_id}/like', 'CommentsController@likeComment')->name('comment.like.add');
+    //New func
+    Route::post('/{comment_id}/dislike', 'PostController@disikeComment')->name('dislike.add');
 
     Route::patch('/{comment_id}', 'CommentsController@updateCommentData')->name('comment.update');
 

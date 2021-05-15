@@ -23,6 +23,9 @@ class Post extends Model
         'content',
         'body',
         'slug',
+        'featured',
+        'filter',
+        'sorting',
     ];
 
     /**

@@ -53,9 +53,20 @@ class CommentsController extends Controller
             return response()->json($validator->errors(), 404);
         }
 
-        $likes = Like::where('c_id', '=', $comment_id)->get()->count();
-
-        return response()->json($likes);
+        $likes = Like::whereColumn([
+            ['islike', '=', 1],
+            ['c_id', '=', $comment_id], ])
+            ->count();
+        ])
+        
+        
+        $dislikes = Like::whereColumn([
+            ['islike', '=', 0],
+            ['c_id', '=', $comment_id], ])
+            ->count();
+        ])
+        
+        return response()->json($likes-$dislikes);
     }
 
     public function likeComment($comment_id, Request $request)
@@ -72,19 +83,71 @@ class CommentsController extends Controller
         //If like exist
         $my_like = DB::table('likes')
             ->select('id')
-            ->where('author_id', '=', $me['id'])
+            ->whereColumn([
+                ['author_id', '=', $me['id']],
+                ['с_id', '=', $comment_id],
+            ])
             ->count();
         $like = 0;
+
         if ($my_like == 0) {
             $like = Like::create(array_merge(
                 $validator->validated(),
                 ['p_id' => 0,
+                'c_id' = > $comment_id,
                     'author_id' => $me['id'],
                     'islike' => "1"]
             ));
             return response()->json(['message' => 'Like created successfully', 'like' => $like]);
         } else {
-            return response()->json(['Error' => 'You cant suck urself twice, sorry', 'like' => $like]);
+            DB::table('likes')
+            ->whereColumn([
+                ['author_id', '=',  $me['id']],
+                ['c_id', '=', $comment_id],
+            ])
+            ->update(['islike' => 1]
+            return response()->json(['message' => 'Like updated successfully', 'like' => $like]);
+        }
+    }
+
+    public function dislikeComment($comment_id, Request $request)
+    {
+        $validator = Validator::make(["c_id" => $comment_id], [
+            'c_id' => 'required|integer|exists:posts,id',
+        ]);
+        $me = auth()->user();
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        //If like exist
+        $my_like = DB::table('likes')
+            ->select('id')
+            ->whereColumn([
+                ['author_id', '=', $me['id']],
+                ['с_id', '=', $comment_id],
+            ])
+            ->count();
+        $like = 0;
+
+        if ($my_like == 0) {
+            $like = Like::create(array_merge(
+                $validator->validated(),
+                ['p_id' => 0,
+                'c_id' = > $comment_id,
+                    'author_id' => $me['id'],
+                    'islike' => "0"]
+            ));
+            return response()->json(['message' => 'Dislike created successfully', 'dislike' => $like]);
+        } else {
+            DB::table('likes')
+            ->whereColumn([
+                ['author_id', '=',  $me['id']],
+                ['c_id', '=', $comment_id],
+            ])
+            ->update(['islike' => 0]
+            return response()->json(['message' => 'Dislike updated successfully', 'dislike' => $like]);
         }
     }
 
