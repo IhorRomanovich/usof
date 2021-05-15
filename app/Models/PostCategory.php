@@ -16,7 +16,7 @@ class PostCategory extends Model
      */
     protected $fillable = [
         'c_id',
-        'p_id',
+        't_id',
     ];
 
 }

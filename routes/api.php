@@ -36,7 +36,7 @@ Route::group([
     Route::get('/', 'UserController@all')->name('user.all');
     Route::get('/{user_id}', 'UserController@userByID')->name('user.byID');
     Route::post('/', 'UserController@AddUser')->name('user.add');
-    Route::post('avatar', 'UserController@UploadAvatar')->name('user.avatar');
+    Route::post('avatar', 'UserController@UploadUserAvatar')->name('user.avatar');
     Route::patch('/{user_id}', 'UserController@UpdateUserData')->name('user.update');
     Route::delete('/{user_id}', 'UserController@DeleteUserData')->name('user.delete');
 });
@@ -58,7 +58,7 @@ Route::group([
     Route::post('/', 'PostController@AddPost')->name('post.add');
     Route::post('/{post_id}/like', 'PostController@AddLikeToPost')->name('like.add');
     //New func
-    Route::post('/{post_id}/dislike', 'PostController@disikePost')->name('dislike.add');
+    Route::post('/{post_id}/dislike', 'PostController@disikePost')->name('post.dislike.add');
 
     Route::patch('/{post_id}', 'PostController@UpdatePostData')->name('post.update');
     //New func
@@ -96,7 +96,7 @@ Route::group([
 
     Route::post('/{comment_id}/like', 'CommentsController@likeComment')->name('comment.like.add');
     //New func
-    Route::post('/{comment_id}/dislike', 'PostController@disikeComment')->name('dislike.add');
+    Route::post('/{comment_id}/dislike', 'PostController@disikeComment')->name('comment.dislike.add');
 
     Route::patch('/{comment_id}', 'CommentsController@updateCommentData')->name('comment.update');
 

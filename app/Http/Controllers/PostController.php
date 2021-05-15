@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Comment as Comment;
 use App\Models\Like as Like;
 use App\Models\Post as Post;
+use App\Models\PostCategory as PostCategory;
 use App\Models\User as User;
 use DB;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ class PostController extends Controller
 
     public function all(Request $request)
     {
-        $validator = Validator::make($request->all()), [
+        $validator = Validator::make($request->all(), [
             'filter' => 'string|between:1,255',
             'sorting' => 'string|between:3,4',
         ]);
@@ -38,11 +39,10 @@ class PostController extends Controller
         $filter = validator()->validated()['filter'];
         $sorting = validator()->validated()['sorting'];
 
-        if($filter != NULL && $sorting == NULL)
-        {
-        $orders = DB::table('posts')
-        ->orderByRaw('updated_at - created_at' . ) 
-        ->get();
+        if ($filter != null && $sorting == null) {
+            $orders = DB::table('posts')
+                ->orderByRaw('updated_at - created_at' . $sorting)
+                ->get();
         }
 
         $users = Post::all();
@@ -132,18 +132,15 @@ class PostController extends Controller
 
         $likes = Like::whereColumn([
             ['islike', '=', 1],
-            ['p_id', '=', $post_id], ])
+            ['p_id', '=', $post_id]])
             ->count();
-        ])
-        
-        
+
         $dislikes = Like::whereColumn([
             ['islike', '=', 0],
-            ['p_id', '=', $post_id], ])
+            ['p_id', '=', $post_id]])
             ->count();
-        ])
-        
-        return response()->json($likes-$dislikes);
+
+        return response()->json($likes - $dislikes);
 
     }
 
@@ -151,7 +148,7 @@ class PostController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|between:10,255',
-            'category_id' => 'required|integer|exists:categories,id',
+            'category_id.*' => 'required|integer|exists:categories,id',
             'body' => 'required|string|between:200,1000',
         ]);
 
@@ -163,10 +160,19 @@ class PostController extends Controller
         $me = auth()->user();
 
         $post = Post::create(array_merge(
-            $validator->validated(),
+            ['body' => $post_data['body']],
+            ['title' => $post_data['title']],
             ['slug' => Str::slug($post_data['title'], "-")],
             ['author_id' => $me['id']],
         ));
+
+        $last_post_id = DB::table('posts')->latest('created_at')->first()->id;
+        foreach ($validator->validated()['category_id'] as $val) {
+            $post_categories = PostCategory::create(array_merge(
+                ['c_id' => $val],
+                ['t_id' => $last_post_id]
+            ));
+        }
 
         return response()->json(['message' => 'Post created successfully', 'post' => $post]);
     }
@@ -186,30 +192,29 @@ class PostController extends Controller
 
         //If like exist
         $my_like = DB::table('likes')
-        ->select('id')
-        ->whereColumn([
-            ['author_id', '=',  $me['id']],
-            ['p_id', '=', $post_id],
-        ])
-        ->count();
+            ->select('id')
+            ->whereColumn([
+                ['author_id', '=', $me['id']],
+                ['p_id', '=', $post_id],
+            ])
+            ->count();
 
         $like = 0;
         if ($my_like == 0) {
             $like = Like::create(array_merge(
                 $validator->validated(),
                 ['c_id' => 0,
-                'p_id' = > $post_id,
+                    'p_id' => $post_id,
                     'author_id' => $me['id'],
                     'islike' => "1"]
             ));
             return response()->json(['message' => 'Like created successfully', 'like' => $like]);
         } else {
             DB::table('likes')
-            ->whereColumn([
-                ['author_id', '=',  $me['id']],
-                ['p_id', '=', $post_id],
-            ])
-            ->update(['islike' => 1]
+                ->whereColumn([
+                    ['author_id', '=', $me['id']],
+                    ['p_id', '=', $post_id],
+                ])->update(['islike' => 1]);
             return response()->json(['message' => 'Like updated successfully', 'like' => $like]);
         }
     }
@@ -362,7 +367,7 @@ class PostController extends Controller
         $my_like = DB::table('likes')
             ->select('id')
             ->whereColumn([
-                ['author_id', '=',  $me['id']],
+                ['author_id', '=', $me['id']],
                 ['p_id', '=', $post_id],
             ])
             ->count();
@@ -372,18 +377,18 @@ class PostController extends Controller
             $like = Like::create(array_merge(
                 $validator->validated(),
                 ['c_id' => 0,
-                'p_id' = > $post_id,
+                    'p_id' => $post_id,
                     'author_id' => $me['id'],
                     'islike' => "0"]
             ));
             return response()->json(['message' => 'Dislike created successfully', 'dislike' => $like]);
         } else {
             DB::table('likes')
-            ->whereColumn([
-                ['author_id', '=',  $me['id']],
-                ['p_id', '=', $post_id],
-            ])
-            ->update(['islike' => 0]
+                ->whereColumn([
+                    ['author_id', '=', $me['id']],
+                    ['p_id', '=', $post_id],
+                ])
+                ->update(['islike' => 0]);
             return response()->json(['message' => 'Dislike updated successfully', 'dislike' => $like]);
         }
     }

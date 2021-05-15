@@ -2,13 +2,11 @@
 
 namespace App\Models;
 
-use Tymon\JWTAuth\Contracts\JWTSubject;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\Passwords\CanResetPassword as CRP;
 use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Auth\Passwords\CanResetPassword as CRP;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends \TCG\Voyager\Models\User implements JWTSubject, CanResetPassword
 {
@@ -26,6 +24,7 @@ class User extends \TCG\Voyager\Models\User implements JWTSubject, CanResetPassw
         'fullname',
         'profile_picture',
         'can_login',
+        'avatar',
     ];
 
     /**
@@ -49,11 +48,12 @@ class User extends \TCG\Voyager\Models\User implements JWTSubject, CanResetPassw
         //'role' => 'biginteger'
     ];
 
-    public function getJWTIdentifier() {
+    public function getJWTIdentifier()
+    {
         return $this->getKey();
     }
 
-    public function getJWTCustomClaims() 
+    public function getJWTCustomClaims()
     {
         return [];
     }

@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware('auth:api', ['except' => ['login', 'register']]);
         /*$this->middleware('confirmedMail', ['except' => ['register']]);*/
     }
 
-    public function login(Request $request) {
+    public function login(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
             'name' => 'required|string|between:5,30|exists:users,name',
@@ -29,19 +31,18 @@ class AuthController extends Controller
         $userToCheck = User::select()->where('email', $request->all()['email'])->first();
 
         //echo $user_verified_email->hasRole('admin');
-      //  $can_login  = User::select()->where('can_login', $request->all()['can_login'])->first();
+        //  $can_login  = User::select()->where('can_login', $request->all()['can_login'])->first();
 
-        if(!$userToCheck->can_login)
-        {
+        if (!$userToCheck->can_login) {
             return response()->json(
                 ["Unauthorized." => "User was deleted and can't be authorized!",
-            ], 401);
+                ], 401);
         }
 
-        if (is_null($userToCheck->email_verified_at) && !$user_verified_email->hasRole('admin')) {
+        if (is_null($userToCheck->email_verified_at) && !$userToCheck->hasRole('admin')) {
             return response()->json(
                 ["Unauthorized. Email confirmation required!" => "Email is not verified. Please verify your email first!",
-            ], 401);
+                ], 401);
         }
 
         $token_validity = 24 * 60;
@@ -52,11 +53,12 @@ class AuthController extends Controller
         if (!$token) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
-        
+
         return $this->respondWithToken($token);
     }
 
-    public function register(Request $request) {
+    public function register(Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|between:5,30|unique:users',
             'password' => 'required|string|between:8,30',
@@ -80,24 +82,28 @@ class AuthController extends Controller
         return response()->json(['message' => 'User created successfully', 'user' => $user]);
     }
 
-    public function logout() {
+    public function logout()
+    {
         $this->guard()->logout();
         return response()->json(['message' => 'User logged out successfully']);
     }
 
-    public function refresh() {
+    public function refresh()
+    {
         return $this->respondWithToken($this->guard()->refresh());
     }
 
-    protected function respondWithToken($token) {
+    protected function respondWithToken($token)
+    {
         return response()->json([
             'token' => $token,
             'token_type' => 'bearer',
-            'token_validity' => $this->guard()->factory()->getTTL() * 60
+            'token_validity' => $this->guard()->factory()->getTTL() * 60,
         ]);
     }
 
-    protected function guard() {
+    protected function guard()
+    {
         return Auth::guard('api');
     }
 }

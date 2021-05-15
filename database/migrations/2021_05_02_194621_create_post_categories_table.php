@@ -17,6 +17,7 @@ class CreatePostCategoriesTable extends Migration
             $table->unsignedBigInteger('c_id');
             $table->unsignedBigInteger('t_id');
             $table->primary(['c_id', 't_id']);
+            $table->timestamps();
         });
     }
 

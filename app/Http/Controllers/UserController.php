@@ -2,27 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use Auth;
-
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
-use App\Repositories\ImageRepository;
-
 use App\Models\User as User;
+use Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    public function __construct() {
+    public function __construct()
+    {
         $this->middleware('auth:api');
     }
 
-    public function all(Request $request) {
+    public function all(Request $request)
+    {
         $users = User::all();
         return response()->json($users);
     }
 
-    public function userByID($user_id, Request $request) {
+    public function userByID($user_id, Request $request)
+    {
         $validator = Validator::make(["user_id" => $user_id], [
             'user_id' => 'required|integer|exists:users,id',
         ]);
@@ -38,7 +38,8 @@ class UserController extends Controller
         return response()->json($user);
     }
 
-    public function AddUser(Request $request) {
+    public function AddUser(Request $request)
+    {
         $user = auth()->user();
         if ($user->hasRole('admin')) {
             $validator = Validator::make($request->all(), [
@@ -47,42 +48,55 @@ class UserController extends Controller
                 'password_confirmation' => 'required|string|between:8,30|same:password',
                 'email' => 'required|email|unique:users',
             ]);
-    
+
             if ($validator->fails()) {
                 return response()->json($validator->errors(), 422);
             }
-    
+
             $user_data = $validator->validated();
             unset($user_data['password_confirmation']);
-    
+
             $user = User::create(array_merge(
                 $validator->validated(),
                 ['password' => Hash::make($request->password)]
             ));
             $user->sendEmailVerificationNotification();
-    
+
             return response()->json(['message' => 'User created successfully', 'user' => $user]);
-        }
-        else {
+        } else {
             return response()->json(["Error" => "Permission denied"], 403);
         }
-
-
-        
     }
 
-    public function UploadUserAvatar(Request $request) {
+    public function UploadUserAvatar(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
-        $image = Input::file('file'); //i think you call your input on the html form as 'file'
-        $img = Image::make($image)->resize(320, 240, function ($constraint) {
-            $constraint->aspectRatio();
-        });
-        $imgName = rand(11111, 99999).'.'.$image->getClientOriginalExtension();
-        $this->imageRepository->uploadImage($img, $imgName);
-    
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+        $user_avatar = $validator->validated()['avatar'];
+
+        $imageName = time() . '.' . $user_avatar->extension();
+
+        $user_avatar->move(public_path('storage/users'), $imageName);
+
+        $me = auth()->user();
+        $user = User::where('id', '=', $me->id)->get()->first();
+
+        $path = 'users/' . $imageName;
+        $user->fill(['avatar' => $path]);
+
+        $user->save();
+
+        return response()->json(['message' => 'User avatar updated successfully']);
+
     }
 
-    public function UpdateUserData($user_id, Request $request) {
+    public function UpdateUserData($user_id, Request $request)
+    {
         $validator = Validator::make($request->all(), [
             'name' => 'string|between:5,30|unique:users',
             'password' => 'string|between:8,30',
@@ -96,7 +110,7 @@ class UserController extends Controller
         }
         $me = auth()->user();
         if ($me->id != $user_id) {
-            if (!$me.hasRole('admin')) {
+            if (!$me . hasRole('admin')) {
                 return response()->json(['Error' => 'Permission denied', 403]);
             }
         }
@@ -112,7 +126,7 @@ class UserController extends Controller
         }
 
         $user->fill(array_merge($newUserData, ['password' => Hash::make($request->password)]));
-        //$user->fill(['fullname' => "Gay Orgies",]);      
+        //$user->fill(['fullname' => "Gay Orgies",]);
 
         $user->save();
 
@@ -123,7 +137,8 @@ class UserController extends Controller
         return response()->json(['message' => 'User data updated successfully', 'user' => $user]);
     }
 
-    public function DeleteUserData($user_id, Request $request) {
+    public function DeleteUserData($user_id, Request $request)
+    {
         $validator = Validator::make(["user_id" => $user_id], [
             'user_id' => 'required|integer|exists:users,id',
         ]);
@@ -134,14 +149,14 @@ class UserController extends Controller
 
         $me = auth()->user();
         if ($me->id != $user_id) {
-            if (!$me.hasRole('admin')) {
+            if (!$me . hasRole('admin')) {
                 return response()->json(['Error' => 'Permission denied', 403]);
             }
         }
 
         $user = User::where('id', '=', $user_id)->get()->first();
         //$user['fullname'] = "Gay Orgy";
-        $user->fill(['can_login' => false,]);
+        $user->fill(['can_login' => false]);
         $user->save();
 
         // get current user
@@ -158,14 +173,14 @@ class UserController extends Controller
         // if (!$me.hasRole('admin')) {
         //     Auth::logout(); // set again current user
         // }
-        
-        
-      //DB::table('users')->delete($user_id);
-      //DB::table('users')->delete($user_id);
-    
+
+        //DB::table('users')->delete($user_id);
+        //DB::table('users')->delete($user_id);
+
     }
 
-    protected function guard() {
+    protected function guard()
+    {
         return Auth::guard('api');
     }
 }
