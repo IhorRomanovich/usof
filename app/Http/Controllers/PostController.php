@@ -23,30 +23,69 @@ class PostController extends Controller
     {
         return Auth::guard('api');
     }
-//Доделать
 
     public function all(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'filter' => 'string|between:1,255',
-            'sorting' => 'string|between:3,4',
+            'sorting' => 'boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 404);
         }
 
-        $filter = validator()->validated()['filter'];
-        $sorting = validator()->validated()['sorting'];
-
-        if ($filter != null && $sorting == null) {
-            $orders = DB::table('posts')
-                ->orderByRaw('updated_at - created_at' . $sorting)
-                ->get();
+        $validatedData = $validator->validated();
+        $filter = null;
+        $sorting = false;
+        if (array_key_exists('filter', $validatedData)) {
+            $filter = $validator->validated()['filter'];
         }
 
-        $users = Post::all();
-        return response()->json($users);
+        if (array_key_exists('sorting', $validatedData)) {
+            $sorting = $validator->validated()['sorting'];
+        }
+
+        $posts = DB::table('posts');
+
+        $filteredAndSortedPosts = $this->sortedPosts($this->filterPosts($posts, $filter), $sorting)->get();
+
+        return response()->json($filteredAndSortedPosts);
+    }
+
+    private function filterPosts($posts, $filter)
+    {
+        if (!$filter) {
+            return $posts;
+        }
+        if(data) {
+            $posts->;
+        }
+        if() {
+            $posts->;
+        }
+        if() {
+            $posts->join('post_categories', 'posts.id', '=', 'post_categories.t_id')
+            ->where('post_categories.c_id', '=', $filter);;
+        }
+
+        return $posts;
+           
+    }
+
+    private function sortedPosts($posts, $sorting)
+    {
+        if (!$sorting) {
+            return $posts->select('*')->selectSub(function ($q) {
+                $q->from('likes')
+                    ->whereRaw('likes.p_id = posts.id')
+                    ->where('likes.islike', 1)
+                    ->selectRaw('count(islike)');
+            }, 'likes_count')
+                ->orderBy('likes_count', 'desc');
+        }
+
+        return $posts->orderBy('updated_at', 'desc');
     }
 
     public function postByID($post_id, Request $request)
@@ -193,7 +232,7 @@ class PostController extends Controller
         //If like exist
         $my_like = DB::table('likes')
             ->select('id')
-            ->whereColumn([
+            ->where([
                 ['author_id', '=', $me['id']],
                 ['p_id', '=', $post_id],
             ])
@@ -206,15 +245,15 @@ class PostController extends Controller
                 ['c_id' => 0,
                     'p_id' => $post_id,
                     'author_id' => $me['id'],
-                    'islike' => "1"]
+                    'islike' => true]
             ));
             return response()->json(['message' => 'Like created successfully', 'like' => $like]);
         } else {
             DB::table('likes')
-                ->whereColumn([
+                ->where([
                     ['author_id', '=', $me['id']],
                     ['p_id', '=', $post_id],
-                ])->update(['islike' => 1]);
+                ])->update(['islike' => true]);
             return response()->json(['message' => 'Like updated successfully', 'like' => $like]);
         }
     }
