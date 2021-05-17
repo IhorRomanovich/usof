@@ -11,6 +11,11 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Spatie\QueryBuilder\Filters\Filter as Filter;
+use Spatie\QueryBuilder\AllowedFilter as AllowedFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Spatie\QueryBuilder\QueryBuilder as QBuilder;
+
 
 class PostController extends Controller
 {
@@ -27,7 +32,10 @@ class PostController extends Controller
     public function all(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'filter' => 'string|between:1,255',
+            'filter.categories' => 'required',
+            'filter.statuses' => 'required',
+            'filter.date.from' => 'required|string',
+            'filter.date.to' => 'required|string',
             'sorting' => 'boolean',
         ]);
 
@@ -36,11 +44,7 @@ class PostController extends Controller
         }
 
         $validatedData = $validator->validated();
-        $filter = null;
-        $sorting = false;
-        if (array_key_exists('filter', $validatedData)) {
-            $filter = $validator->validated()['filter'];
-        }
+        $filter = $validator->validated()['filter'];
 
         if (array_key_exists('sorting', $validatedData)) {
             $sorting = $validator->validated()['sorting'];
@@ -55,22 +59,31 @@ class PostController extends Controller
 
     private function filterPosts($posts, $filter)
     {
-        if (!$filter) {
+        if (!isset($filter)) {
             return $posts;
         }
-        if(data) {
-            $posts->;
+
+        if (isset($filter['statuses'])) {
+            $posts = $posts->whereIn('status', $filter['statuses']);
         }
-        if() {
-            $posts->;
+
+        if (isset($filter['categories'])) {
+            $posts = $posts->whereIn('id', function($query) use ($filter)
+            {
+                $query->select("t_id")
+                      ->from('post_categories')
+                      ->whereIn('post_categories.c_id', $filter['categories']);
+            });
         }
-        if() {
-            $posts->join('post_categories', 'posts.id', '=', 'post_categories.t_id')
-            ->where('post_categories.c_id', '=', $filter);;
+
+        if (isset($filter['date']) && isset($filter['date']['from']) && isset($filter['date']['to'])) {
+            $from =$filter['date']['from'];
+            $to = $filter['date']['to'];
+            $posts = $posts->whereBetween('created_at', [$from, $to]);
         }
 
         return $posts;
-           
+
     }
 
     private function sortedPosts($posts, $sorting)
