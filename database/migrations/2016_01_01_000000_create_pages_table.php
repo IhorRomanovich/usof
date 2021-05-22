@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use TCG\Voyager\Models\Page;
    /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Schema;
     | any other location as required by the application or its packages.
     |
     */
-class CreatePasswordResetsTable extends Migration
+class CreatePagesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -22,10 +22,19 @@ class CreatePasswordResetsTable extends Migration
      */
     public function up()
     {
-        Schema::create('password_resets', function (Blueprint $table) {
-            $table->string('email')->index();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+        // Create table for storing roles
+        Schema::create('pages', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('author_id');
+            $table->string('title');
+            $table->text('excerpt')->nullable();
+            $table->text('body')->nullable();
+            $table->string('image')->nullable();
+            $table->string('slug')->unique();
+            $table->text('meta_description')->nullable();
+            $table->text('meta_keywords')->nullable();
+            $table->enum('status', Page::$statuses)->default(Page::STATUS_INACTIVE);
+            $table->timestamps();
         });
     }
 
@@ -36,6 +45,6 @@ class CreatePasswordResetsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('password_resets');
+        Schema::drop('pages');
     }
 }

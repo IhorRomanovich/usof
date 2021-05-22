@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Schema;
     | any other location as required by the application or its packages.
     |
     */
-class CreatePasswordResetsTable extends Migration
+class AlterPostNullableFieldsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -22,10 +22,13 @@ class CreatePasswordResetsTable extends Migration
      */
     public function up()
     {
-        Schema::create('password_resets', function (Blueprint $table) {
-            $table->string('email')->index();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+        $platform = \DB::getDoctrineSchemaManager()->getDatabasePlatform();
+        $platform->registerDoctrineTypeMapping('enum', 'string');
+
+        Schema::table('posts', function (Blueprint $table) {
+            $table->text('excerpt')->nullable()->change();
+            $table->text('meta_description')->nullable()->change();
+            $table->text('meta_keywords')->nullable()->change();
         });
     }
 
@@ -36,6 +39,10 @@ class CreatePasswordResetsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('password_resets');
+        Schema::table('posts', function (Blueprint $table) {
+            $table->text('excerpt')->change();
+            $table->text('meta_description')->change();
+            $table->text('meta_keywords')->change();
+        });
     }
 }

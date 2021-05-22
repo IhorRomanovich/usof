@@ -1,15 +1,25 @@
 <?php
 
 namespace App\Models;
-
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+   /*
+    |--------------------------------------------------------------------------
+    | Application Name
+    |--------------------------------------------------------------------------
+    |
+    | This value is the name of your application. This value is used when the
+    | framework needs to place the application's name in a notification or
+    | any other location as required by the application or its packages.
+    |
+    */
+use Illuminate\Auth\Passwords\CanResetPassword as CRP;
+use Illuminate\Contracts\Auth\CanResetPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends \TCG\Voyager\Models\User implements JWTSubject, CanResetPassword
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, CRP;
 
     /**
      * The attributes that are mass assignable.
@@ -17,12 +27,13 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'login',
+        'name',
         'email',
         'password',
         'fullname',
         'profile_picture',
-        'role'
+        'can_login',
+        'avatar',
     ];
 
     /**
@@ -31,6 +42,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
+        'role_id',
         'password',
         'remember_token',
     ];
@@ -42,5 +54,28 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        //'role' => 'biginteger'
     ];
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
+
+    // /**
+    //  * Send the password reset notification.
+    //  *
+    //  * @param  string  $token
+    //  * @return void
+    //  */
+    // public function sendPasswordResetNotification($token)
+    // {
+    //     $this->notify(new ResetPasswordNotification($token));
+    // }
+
 }

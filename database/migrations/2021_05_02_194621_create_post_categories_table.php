@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Schema;
     | any other location as required by the application or its packages.
     |
     */
-class CreatePasswordResetsTable extends Migration
+class CreatePostCategoriesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -22,10 +22,11 @@ class CreatePasswordResetsTable extends Migration
      */
     public function up()
     {
-        Schema::create('password_resets', function (Blueprint $table) {
-            $table->string('email')->index();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+        Schema::create('post_categories', function (Blueprint $table) {
+            $table->unsignedBigInteger('c_id');
+            $table->unsignedBigInteger('t_id');
+            $table->primary(['c_id', 't_id']);
+            $table->timestamps();
         });
     }
 
@@ -36,6 +37,6 @@ class CreatePasswordResetsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('password_resets');
+        Schema::dropIfExists('post_categories');
     }
 }

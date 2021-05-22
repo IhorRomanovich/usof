@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
    /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -13,7 +12,7 @@ use Illuminate\Support\Facades\Schema;
     | any other location as required by the application or its packages.
     |
     */
-class CreatePasswordResetsTable extends Migration
+class CreateCategoriesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -22,10 +21,16 @@ class CreatePasswordResetsTable extends Migration
      */
     public function up()
     {
-        Schema::create('password_resets', function (Blueprint $table) {
-            $table->string('email')->index();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+        // Create table for storing categories
+        Schema::create('categories', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('parent_id')->unsigned()->nullable()->default(null);
+            $table->foreign('parent_id')->references('id')->on('categories')->onUpdate('cascade')->onDelete('set null');
+            $table->integer('order')->default(1);
+            $table->string('name');
+            $table->string('description')->default("No description.");
+            $table->string('slug')->unique();
+            $table->timestamps();
         });
     }
 
@@ -36,6 +41,6 @@ class CreatePasswordResetsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('password_resets');
+        Schema::drop('categories');
     }
 }
