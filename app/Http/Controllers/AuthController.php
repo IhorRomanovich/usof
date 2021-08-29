@@ -18,9 +18,11 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email',
-            'name' => 'required|string|between:5,30|exists:users,name',
+        $userData = $request->all();
+        
+        $validator = Validator::make($userData, [
+            'email' => 'required|email',
+            'name' => 'required|string|between:5,30',
             'password' => 'required|string|between:8,30',
         ]);
 
@@ -28,10 +30,13 @@ class AuthController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        $userToCheck = User::select()->where('email', $request->all()['email'])->first();
-
+        $userToCheck = User::select()->where('email', $userData['email'])->first();
         //echo $user_verified_email->hasRole('admin');
         //  $can_login  = User::select()->where('can_login', $request->all()['can_login'])->first();
+
+        if (!$userToCheck || $userToCheck->name != $request->name || $userToCheck->password != Hash::make($request->password)) {
+            return response()->json(['message' => 'Invalid email, name or password!'], 200);
+        }
 
         if (!$userToCheck->can_login) {
             return response()->json(

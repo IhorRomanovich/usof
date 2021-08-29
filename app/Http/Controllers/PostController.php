@@ -32,10 +32,8 @@ class PostController extends Controller
     public function all(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'filter.categories' => 'required',
-            'filter.statuses' => 'required',
-            'filter.date.from' => 'required|string',
-            'filter.date.to' => 'required|string',
+            'filter.date.from' => 'string',
+            'filter.date.to' => 'string',
             'sorting' => 'boolean',
         ]);
 
@@ -44,15 +42,20 @@ class PostController extends Controller
         }
 
         $validatedData = $validator->validated();
-        $filter = $validator->validated()['filter'];
+        $filter = null;
+        $sorting = null;
+        
+        if (array_key_exists('filter', $validatedData)) {
+            $filter =  $validatedData['filter'];
+        }
 
         if (array_key_exists('sorting', $validatedData)) {
-            $sorting = $validator->validated()['sorting'];
+            $sorting =  $validatedData['sorting'];
         }
 
         $posts = DB::table('posts');
 
-        $filteredAndSortedPosts = $this->sortedPosts($this->filterPosts($posts, $filter), $sorting)->get();
+        $filteredAndSortedPosts = $this->sortPosts($this->filterPosts($posts, $filter), $sorting)->get();
 
         return response()->json($filteredAndSortedPosts);
     }
@@ -86,7 +89,7 @@ class PostController extends Controller
 
     }
 
-    private function sortedPosts($posts, $sorting)
+    private function sortPosts($posts, $sorting)
     {
         if (!$sorting) {
             return $posts->select('*')->selectSub(function ($q) {
