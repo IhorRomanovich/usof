@@ -60,7 +60,7 @@ class CommentsController extends Controller
         $dislikes = Like::whereColumn([
             ['islike', '=', 0],
             ['c_id', '=', $comment_id], ])->count();
-        
+
         return response()->json($likes-$dislikes);
     }
 
@@ -95,14 +95,14 @@ class CommentsController extends Controller
                     'islike' => "1"
                 ],
             ));
-            
+
             return response()->json(['message' => 'Like created successfully', 'like' => $like]);
         } else {
             DB::table('likes')->whereColumn([
                     ['author_id', '=',  $me['id']],
                     ['c_id', '=', $comment_id],
                 ])->update(['islike' => 1]);
-    
+
             return response()->json(['message' => 'Like updated successfully', 'like' => $like]);
         }
     }
@@ -138,14 +138,14 @@ class CommentsController extends Controller
                     'islike' => "0"
                 ],
             ));
-            
+
             return response()->json(['message' => 'Dislike created successfully', 'dislike' => $like]);
         } else {
             DB::table('likes')->whereColumn([
                     ['author_id', '=',  $me['id']],
                     ['c_id', '=', $comment_id],
                 ])->update(['islike' => 0]);
-            
+
             return response()->json(['message' => 'Dislike updated successfully', 'dislike' => $like]);
         }
     }
