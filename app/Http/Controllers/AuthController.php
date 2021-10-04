@@ -59,7 +59,7 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return $this->respondWithToken($token);
+        return $this->respondWithToken($token); 
     }
 
     public function register(Request $request)
@@ -82,6 +82,7 @@ class AuthController extends Controller
             $validator->validated(),
             ['password' => Hash::make($request->password)]
         ));
+        
         $user->sendEmailVerificationNotification();
 
         return response()->json(['message' => 'User created successfully', 'user' => $user]);

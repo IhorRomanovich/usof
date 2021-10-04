@@ -55,16 +55,11 @@ class CommentsController extends Controller
 
         $likes = Like::whereColumn([
             ['islike', '=', 1],
-            ['c_id', '=', $comment_id], ])
-            ->count();
-        ])
-        
-        
+            ['c_id', '=', $comment_id], ])->count();
+
         $dislikes = Like::whereColumn([
             ['islike', '=', 0],
-            ['c_id', '=', $comment_id], ])
-            ->count();
-        ])
+            ['c_id', '=', $comment_id], ])->count();
         
         return response()->json($likes-$dislikes);
     }
@@ -93,19 +88,21 @@ class CommentsController extends Controller
         if ($my_like == 0) {
             $like = Like::create(array_merge(
                 $validator->validated(),
-                ['p_id' => 0,
-                'c_id' = > $comment_id,
+                [
+                    'p_id' => 0,
+                    'c_id' => $comment_id,
                     'author_id' => $me['id'],
-                    'islike' => "1"]
+                    'islike' => "1"
+                ],
             ));
+            
             return response()->json(['message' => 'Like created successfully', 'like' => $like]);
         } else {
-            DB::table('likes')
-            ->whereColumn([
-                ['author_id', '=',  $me['id']],
-                ['c_id', '=', $comment_id],
-            ])
-            ->update(['islike' => 1]
+            DB::table('likes')->whereColumn([
+                    ['author_id', '=',  $me['id']],
+                    ['c_id', '=', $comment_id],
+                ])->update(['islike' => 1]);
+    
             return response()->json(['message' => 'Like updated successfully', 'like' => $like]);
         }
     }
@@ -134,19 +131,21 @@ class CommentsController extends Controller
         if ($my_like == 0) {
             $like = Like::create(array_merge(
                 $validator->validated(),
-                ['p_id' => 0,
-                'c_id' = > $comment_id,
+                [
+                    'p_id' => 0,
+                    'c_id' => $comment_id,
                     'author_id' => $me['id'],
-                    'islike' => "0"]
+                    'islike' => "0"
+                ],
             ));
+            
             return response()->json(['message' => 'Dislike created successfully', 'dislike' => $like]);
         } else {
-            DB::table('likes')
-            ->whereColumn([
-                ['author_id', '=',  $me['id']],
-                ['c_id', '=', $comment_id],
-            ])
-            ->update(['islike' => 0]
+            DB::table('likes')->whereColumn([
+                    ['author_id', '=',  $me['id']],
+                    ['c_id', '=', $comment_id],
+                ])->update(['islike' => 0]);
+            
             return response()->json(['message' => 'Dislike updated successfully', 'dislike' => $like]);
         }
     }
