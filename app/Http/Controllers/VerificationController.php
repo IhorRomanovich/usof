@@ -9,7 +9,7 @@ use App\Models\User;
 class VerificationController extends Controller
 {
     public function verify($user_id, Request $request) {
-        
+
         if (!$request->hasValidSignature()) {
             return response()->json(['error' => 'Request has invalid signature!'], 401);
         }
@@ -20,7 +20,7 @@ class VerificationController extends Controller
             $user->markEmailAsVerified();
         }
 
-        return redirect()->to('/');
+        return response()->json(['success' => 'Email verified!'], 200);
     }
 
     public function resend() {
