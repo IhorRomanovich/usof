@@ -46,7 +46,8 @@ Route::group([
     'namespace' => 'App\Http\Controllers',
     'prefix' => 'posts',
 ], function ($router) {
-    Route::get('/', 'PostController@all')->name('post.all');
+    Route::get('', 'PostController@all')->name('post.all');
+    Route::get('/search', 'PostController@search')->name('post.search');
     Route::get('/{post_id}', 'PostController@postByID')->name('post.byID');
     Route::get('/{post_id}/comments', 'PostController@commentsByPostID')->name('comments.byPostID');
 

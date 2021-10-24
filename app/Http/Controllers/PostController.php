@@ -6,22 +6,17 @@ use App\Models\Comment as Comment;
 use App\Models\Like as Like;
 use App\Models\Post as Post;
 use App\Models\PostCategory as PostCategory;
-use App\Models\User as User;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Spatie\QueryBuilder\Filters\Filter as Filter;
-use Spatie\QueryBuilder\AllowedFilter as AllowedFilter;
-use Illuminate\Database\Eloquent\Builder;
-use Spatie\QueryBuilder\QueryBuilder as QBuilder;
-
+use Illuminate\Pagination\Paginator as Paginator;
 
 class PostController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['all', 'postByID', 'commentsByPostID', 'categoryByPostID']]);
+        $this->middleware('auth:api', ['except' => ['all', 'search', 'postByID', 'commentsByPostID', 'categoryByPostID']]);
     }
 
     protected function guard()
@@ -31,7 +26,15 @@ class PostController extends Controller
 
     public function all(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $params = array(
+            'page' => intval($request->query('page')),
+            'sorting' => $request->boolean('sorting'),
+            'filter' => json_decode($request->query('filter'), true),
+        );
+
+        $validator = Validator::make($params, [
+            'page' => 'integer|required',
+            'filter' => 'array',
             'filter.date.from' => 'string',
             'filter.date.to' => 'string',
             'sorting' => 'boolean',
@@ -41,23 +44,60 @@ class PostController extends Controller
             return response()->json($validator->errors(), 404);
         }
 
-        $validatedData = $validator->validated();
         $filter = null;
         $sorting = null;
-        
-        if (array_key_exists('filter', $validatedData)) {
-            $filter =  $validatedData['filter'];
+        $validateData = $validator->validated();
+
+        if (array_key_exists('filter', $validateData)) {
+            $filter =  $validateData['filter'];
         }
 
-        if (array_key_exists('sorting', $validatedData)) {
-            $sorting =  $validatedData['sorting'];
+        if (array_key_exists('sorting', $validateData)) {
+            $sorting =  $validateData['sorting'];
         }
 
         $posts = DB::table('posts');
+        $page = $validateData['page'];
 
-        $filteredAndSortedPosts = $this->sortPosts($this->filterPosts($posts, $filter), $sorting)->get();
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $filteredAndSortedPosts = $this->sortPosts($this->filterPosts($posts, $filter), $sorting)->paginate(10);
 
         return response()->json($filteredAndSortedPosts);
+    }
+
+    public function search(Request $request)
+    {
+        $params = array(
+            'page' => intval($request->query('page')),
+            'term' => $request->query('term'),
+        );
+
+        $validator = Validator::make($params, [
+            'page' => 'integer|required',
+            'term' => 'string|required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 404);
+        }
+
+        $validateData = $validator->validated();
+        $page = $validateData['page'];
+        $term = $validateData['term'];
+
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $posts = DB::table('posts')
+            ->where('title', 'LIKE', '%'.$term.'%')
+            ->orWhere('body', 'LIKE', '%'.$term.'%')
+            ->paginate(10);
+
+        return response()->json($posts);
     }
 
     private function filterPosts($posts, $filter)
@@ -70,7 +110,7 @@ class PostController extends Controller
             $posts = $posts->whereIn('status', $filter['statuses']);
         }
 
-        if (isset($filter['categories'])) {
+        if (isset($filter['categories']) && count($filter['categories'])) {
             $posts = $posts->whereIn('id', function($query) use ($filter)
             {
                 $query->select("t_id")
@@ -91,15 +131,16 @@ class PostController extends Controller
 
     private function sortPosts($posts, $sorting)
     {
-        if (!$sorting) {
-            return $posts->select('*')->selectSub(function ($q) {
-                $q->from('likes')
-                    ->whereRaw('likes.p_id = posts.id')
-                    ->where('likes.islike', 1)
-                    ->selectRaw('count(islike)');
-            }, 'likes_count')
-                ->orderBy('likes_count', 'desc');
-        }
+        $posts = $posts->select('*')->selectSub(function ($q) {
+            $q->from('likes')
+                ->whereRaw('likes.p_id = posts.id')
+                ->where('likes.islike', 1)
+                ->selectRaw('count(islike)');
+        }, 'likes_count');
+
+       if ($sorting) {
+            return  $posts->orderBy('likes_count', 'desc');
+       }
 
         return $posts->orderBy('updated_at', 'desc');
     }
