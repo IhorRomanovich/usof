@@ -28,24 +28,24 @@ class AuthController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
-        $userToCheck = User::select()->where('email', $request->all()['email'])->first();
+        $user = User::select()->where('email', $request->all()['email'])->first();
 
         //echo $user_verified_email->hasRole('admin');
         //  $can_login  = User::select()->where('can_login', $request->all()['can_login'])->first();
 
-        if (!$userToCheck->can_login) {
+        if (!$user->can_login) {
             return response()->json(
                 ["Unauthorized." => "User was deleted and can't be authorized!",
                 ], 401);
         }
 
-        if (is_null($userToCheck->email_verified_at) && !$userToCheck->hasRole('admin')) {
+        if (is_null($user->email_verified_at) && !$user->hasRole('admin')) {
             return response()->json(
                 ["Unauthorized. Email confirmation required!" => "Email is not verified. Please verify your email first!",
                 ], 401);
         }
 
-        $token_validity = 24 * 60;
+        $token_validity = 24 * 5000;
 
         $this->guard()->factory()->setTTL($token_validity);
 
@@ -54,7 +54,7 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return $this->respondWithToken($token);
+        return $this->respondWithToken($token, $user);
     }
 
     public function register(Request $request)
@@ -93,12 +93,13 @@ class AuthController extends Controller
         return $this->respondWithToken($this->guard()->refresh());
     }
 
-    protected function respondWithToken($token)
+    protected function respondWithToken($token, $data)
     {
         return response()->json([
             'token' => $token,
             'token_type' => 'bearer',
             'token_validity' => $this->guard()->factory()->getTTL() * 60,
+            'user' => $data,
         ]);
     }
 

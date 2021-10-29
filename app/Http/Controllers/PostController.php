@@ -16,7 +16,7 @@ class PostController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['all', 'search', 'postByID', 'commentsByPostID', 'categoryByPostID']]);
+        $this->middleware('auth:api', ['except' => ['all', 'search', 'likesByPostID', 'postByID', 'commentsByPostID', 'categoryByPostID']]);
     }
 
     protected function guard()
@@ -131,18 +131,24 @@ class PostController extends Controller
 
     private function sortPosts($posts, $sorting)
     {
-        $posts = $posts->select('*')->selectSub(function ($q) {
-            $q->from('likes')
-                ->whereRaw('likes.p_id = posts.id')
-                ->where('likes.islike', 1)
-                ->selectRaw('count(islike)');
-        }, 'likes_count');
+        $posts = $posts->select('*')
+            ->selectSub(function ($q) {
+                $q->from('likes')
+                    ->whereRaw('likes.p_id = posts.id')
+                    ->where('likes.islike', 1)
+                    ->selectRaw('count(islike)');
+            }, 'likes')
+            ->selectSub(function ($q) {
+                $q->from('likes')
+                    ->whereRaw('likes.p_id = posts.id')
+                    ->where('likes.islike', 0)
+                    ->selectRaw('count(islike)');
+            }, 'dislikes');
 
        if ($sorting) {
-            return  $posts->orderBy('likes_count', 'desc');
+            return $posts->orderByRaw('(likes - dislikes) DESC');
        }
-
-        return $posts->orderBy('updated_at', 'desc');
+       return $posts->orderBy('updated_at', 'desc');
     }
 
     public function postByID($post_id, Request $request)
@@ -226,15 +232,9 @@ class PostController extends Controller
 
         // $comments = Category::where('p_id', '=', $post_id)->get();
 
-        $likes = Like::whereColumn([
-            ['islike', '=', 1],
-            ['p_id', '=', $post_id]])
-            ->count();
+        $likes = Like::where('islike', 1)->where('p_id', $post_id)->count();
 
-        $dislikes = Like::whereColumn([
-            ['islike', '=', 0],
-            ['p_id', '=', $post_id]])
-            ->count();
+        $dislikes = Like::where('islike', 0)->where('p_id', $post_id)->count();
 
         return response()->json($likes - $dislikes);
 
@@ -462,10 +462,8 @@ class PostController extends Controller
         //If like or dislike exist
         $my_like = DB::table('likes')
             ->select('id')
-            ->whereColumn([
-                ['author_id', '=', $me['id']],
-                ['p_id', '=', $post_id],
-            ])
+            ->where('author_id', $me['id'])
+            ->where('p_id', $post_id)
             ->count();
 
         $like = 0;
@@ -480,7 +478,7 @@ class PostController extends Controller
             return response()->json(['message' => 'Dislike created successfully', 'dislike' => $like]);
         } else {
             DB::table('likes')
-                ->whereColumn([
+                ->where([
                     ['author_id', '=', $me['id']],
                     ['p_id', '=', $post_id],
                 ])
