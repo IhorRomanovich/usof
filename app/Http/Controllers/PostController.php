@@ -100,6 +100,36 @@ class PostController extends Controller
         return response()->json($posts);
     }
 
+    public function postsByUser(Request $request)
+    {
+        $params = array(
+            'page' => intval($request->query('page')),
+        );
+
+        $validator = Validator::make($params, [
+            'page' => 'integer|required',
+        ]);
+
+        $me = auth()->user();
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 404);
+        }
+
+        $validateData = $validator->validated();
+        $page = $validateData['page'];
+
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $posts = DB::table('posts')
+            ->where('author_id', $me['id'])
+            ->paginate(10);
+
+        return response()->json($posts);
+    }
+
     private function filterPosts($posts, $filter)
     {
         if (!isset($filter)) {
@@ -176,7 +206,16 @@ class PostController extends Controller
             return response()->json($validator->errors(), 404);
         }
 
-        $comments = Comment::where('post_id', '=', $post_id)->get();
+        $comments = Comment::select('*')
+            ->selectSub(function ($q) {
+                $q->from('users')
+                    ->whereRaw('users.id = author_id')
+                    ->selectRaw('name');
+            }, 'authorName')
+            ->where('post_id', '=', $post_id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
 
         return response()->json($comments);
     }
@@ -243,9 +282,9 @@ class PostController extends Controller
     public function AddPost(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|between:10,255',
+            'title' => 'required|string|between:5,255',
             'category_id.*' => 'required|integer|exists:categories,id',
-            'body' => 'required|string|between:200,1000',
+            'body' => 'required|string|between:5,1000',
         ]);
 
         if ($validator->fails()) {
@@ -260,6 +299,7 @@ class PostController extends Controller
             ['title' => $post_data['title']],
             ['slug' => Str::slug($post_data['title'], "-")],
             ['author_id' => $me['id']],
+            ['status' => 'PUBLISHED']
         ));
 
         $last_post_id = DB::table('posts')->latest('created_at')->first()->id;
